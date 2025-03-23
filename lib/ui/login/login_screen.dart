@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_base_architecture_plugin/extension/context_extensions.dart';
 import 'package:flutter_base_architecture_plugin/imports/core_imports.dart';
 import 'package:flutter_base_architecture_plugin/imports/dart_package_imports.dart';
+import 'package:flutter_base_architecture_plugin/imports/extension_imports.dart';
 import 'package:gap/gap.dart';
 
 import '../../bloc/login/login_bloc.dart';
@@ -12,7 +13,9 @@ import '../../core/colors.dart';
 import '../../core/constants.dart';
 import '../../core/dimens.dart';
 import '../../core/enum.dart';
+import '../../core/routes.dart';
 import '../common/app_text_field.dart';
+import '../common/app_toast.dart';
 import '../common/elevated_button.dart';
 import '../common/text_button.dart';
 
@@ -24,6 +27,41 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends BaseState<LoginBloc, LoginScreen> {
+  @override
+  void onViewEvent(ViewAction event) {
+    switch (event.runtimeType) {
+      case const (DisplayMessage):
+        buildHandleMessage(event as DisplayMessage);
+        break;
+      case const (NavigateScreen):
+        buildHandleActionEvent(event as NavigateScreen);
+        break;
+    }
+  }
+
+  void buildHandleMessage(DisplayMessage displayMessage) {
+    final message = displayMessage.message;
+    final type = displayMessage.type;
+    switch (type) {
+      case DisplayMessageType.toast:
+        context.showToast(AppToast(message: message!));
+        break;
+      default:
+        break;
+    }
+  }
+
+  void buildHandleActionEvent(NavigateScreen screen) async {
+    switch (screen.target) {
+      case AppRoutes.homeScreen:
+        navigatorKey.currentContext?.pushAndRemoveUntil(
+          settings: RouteSettings(name: screen.target),
+          builder: (_) => const LoginScreen(),
+        );
+        break;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -59,20 +97,21 @@ class _LoginContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        _LoginTextFieldView(bloc: bloc),
-        const Gap(Dimens.space4xSmall),
-        _LoginButton(
-          isLoading: bloc.state.isLoginButtonLoading ?? false,
-          onTap: () => bloc.add(LoginButtonTapEvent()),
-        ),
-        const Gap(Dimens.spaceMedium),
-        _CreateAccountButton(onTap: () {
-
-        })
-      ],
+    return Padding(
+      padding: const EdgeInsets.all(15),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          _LoginTextFieldView(bloc: bloc),
+          const Gap(Dimens.space4xSmall),
+          _LoginButton(
+            isLoading: bloc.state.isLoginButtonLoading ?? false,
+            onTap: () => bloc.add(LoginButtonTapEvent()),
+          ),
+          const Gap(Dimens.spaceMedium),
+          _CreateAccountButton(onTap: () {})
+        ],
+      ),
     );
   }
 }
@@ -111,18 +150,15 @@ class _CommonTextField extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: Dimens.space2xSmall),
       child: AppTextField(
-        labelText: loginTextFieldEnum.title,
-        onSubmitted: (_) =>
-            isPasswordText ? bloc.add(LoginButtonTapEvent()) : null,
-        textInputAction:
-            !isPasswordText ? TextInputAction.next : TextInputAction.done,
-        onTapOutside: () =>  navigatorKey.currentContext?.hideKeyboard(),
-        suffixIconType:
-            isPasswordText ? TextFieldSuffixIconType.showObscureText : null,
-        obscureText: isPasswordText,
-        textChanged: (text) => bloc.add(TextFieldChangedEvent(
-            loginTextFieldEnum: loginTextFieldEnum, text: text)),
-      ),
+          labelText: loginTextFieldEnum.title,
+          onSubmitted: (_) =>
+              isPasswordText ? bloc.add(LoginButtonTapEvent()) : null,
+          textInputAction:
+              !isPasswordText ? TextInputAction.next : TextInputAction.done,
+          onTapOutside: () => navigatorKey.currentContext?.hideKeyboard(),
+          suffixIconType:
+              isPasswordText ? TextFieldSuffixIconType.showObscureText : null,
+          obscureText: isPasswordText),
     );
   }
 }
