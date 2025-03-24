@@ -1,13 +1,14 @@
 import 'package:firebase_task/core/app_extension.dart';
 import 'package:firebase_task/ui/common/app_loader.dart';
+import 'package:firebase_task/ui/common/common_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_base_architecture_plugin/imports/core_imports.dart';
 import 'package:flutter_base_architecture_plugin/imports/dart_package_imports.dart';
 import 'package:flutter_base_architecture_plugin/imports/extension_imports.dart';
 import 'package:gap/gap.dart';
 
-import '../../bloc/login/login_bloc.dart';
-import '../../bloc/login/login_contract.dart';
+import '../../bloc/sign_up/sign_up_bloc.dart';
+import '../../bloc/sign_up/sign_up_contract.dart';
 import '../../core/colors.dart';
 import '../../core/constants.dart';
 import '../../core/dimens.dart';
@@ -16,17 +17,15 @@ import '../../core/routes.dart';
 import '../common/app_text_field.dart';
 import '../common/app_toast.dart';
 import '../common/elevated_button.dart';
-import '../common/text_button.dart';
-import '../sign_up/sign_up_screen.dart';
 
-class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+class SignUpScreen extends StatefulWidget {
+  const SignUpScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  State<SignUpScreen> createState() => _SignUpScreenState();
 }
 
-class _LoginScreenState extends BaseState<LoginBloc, LoginScreen> {
+class _SignUpScreenState extends BaseState<SignUpBloc, SignUpScreen> {
   @override
   void onViewEvent(ViewAction event) {
     switch (event.runtimeType) {
@@ -53,14 +52,8 @@ class _LoginScreenState extends BaseState<LoginBloc, LoginScreen> {
 
   void buildHandleActionEvent(NavigateScreen screen) async {
     switch (screen.target) {
-      case AppRoutes.homeScreen:
+      case AppRoutes.loginScreen:
         navigatorKey.currentContext?.pushAndRemoveUntil(
-          settings: RouteSettings(name: screen.target),
-          builder: (_) => const LoginScreen(),
-        );
-        break;
-      case AppRoutes.signUpScreen:
-        navigatorKey.currentContext?.push(
           settings: RouteSettings(name: screen.target),
           builder: (_) => const SignUpScreen(),
         );
@@ -72,10 +65,11 @@ class _LoginScreenState extends BaseState<LoginBloc, LoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
         backgroundColor: AppColors.white,
+        appBar: const CommonAppBar(title: 'Sign Up'),
         body: SafeArea(
-            child: BlocProvider<LoginBloc>(
+            child: BlocProvider<SignUpBloc>(
                 create: (_) => bloc,
-                child: BlocBuilder<LoginBloc, LoginData>(
+                child: BlocBuilder<SignUpBloc, SignUpData>(
                     builder: (_, __) => _MainContent(bloc: bloc)))));
   }
 }
@@ -83,23 +77,23 @@ class _LoginScreenState extends BaseState<LoginBloc, LoginScreen> {
 class _MainContent extends StatelessWidget {
   const _MainContent({required this.bloc});
 
-  final LoginBloc bloc;
+  final SignUpBloc bloc;
 
   @override
   Widget build(BuildContext context) {
     switch (bloc.state.state) {
       case ScreenState.content:
-        return _LoginContent(bloc: bloc);
+        return _SignContent(bloc: bloc);
       default:
         return const AppLoader();
     }
   }
 }
 
-class _LoginContent extends StatelessWidget {
-  final LoginBloc bloc;
+class _SignContent extends StatelessWidget {
+  final SignUpBloc bloc;
 
-  const _LoginContent({required this.bloc});
+  const _SignContent({required this.bloc});
 
   @override
   Widget build(BuildContext context) {
@@ -110,12 +104,10 @@ class _LoginContent extends StatelessWidget {
         children: [
           _LoginTextFieldView(bloc: bloc),
           const Gap(Dimens.space4xSmall),
-          _LoginButton(
+          _SignUpButton(
             isLoading: bloc.state.isLoginButtonLoading ?? false,
-            onTap: () => bloc.add(LoginButtonTapEvent()),
+            onTap: () => bloc.add(SignUpTapEvent()),
           ),
-          const Gap(Dimens.spaceMedium),
-          _CreateAccountButton(onTap: () => bloc.add(CreteAccountTapEvent()))
         ],
       ),
     );
@@ -123,27 +115,28 @@ class _LoginContent extends StatelessWidget {
 }
 
 class _LoginTextFieldView extends StatelessWidget {
-  final LoginBloc bloc;
+  final SignUpBloc bloc;
 
   const _LoginTextFieldView({required this.bloc});
 
   @override
   Widget build(BuildContext context) {
     return Column(
-        children: LoginTextFieldEnum.values
-            .map((element) => _CommonTextField(
-                  loginTextFieldEnum: element,
-                  bloc: bloc,
-                  isPasswordText: element == LoginTextFieldEnum.password,
-                ))
-            .toList());
+      children: LoginTextFieldEnum.values
+          .map((element) => _CommonTextField(
+                loginTextFieldEnum: element,
+                bloc: bloc,
+                isPasswordText: element == LoginTextFieldEnum.password,
+              ))
+          .toList(),
+    );
   }
 }
 
 class _CommonTextField extends StatelessWidget {
   final LoginTextFieldEnum loginTextFieldEnum;
   final bool isPasswordText;
-  final LoginBloc bloc;
+  final SignUpBloc bloc;
 
   const _CommonTextField(
       {required this.loginTextFieldEnum,
@@ -156,10 +149,10 @@ class _CommonTextField extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: Dimens.space2xSmall),
       child: AppTextField(
           labelText: loginTextFieldEnum.title,
+          onSubmitted: (_) =>
+              isPasswordText ? bloc.add(SignUpTapEvent()) : null,
           textEditingController:
               bloc.getTextController(loginTextFieldEnum: loginTextFieldEnum),
-          onSubmitted: (_) =>
-              isPasswordText ? bloc.add(LoginButtonTapEvent()) : null,
           textInputAction:
               !isPasswordText ? TextInputAction.next : TextInputAction.done,
           onTapOutside: () => navigatorKey.currentContext?.hideKeyboard(),
@@ -170,34 +163,18 @@ class _CommonTextField extends StatelessWidget {
   }
 }
 
-class _LoginButton extends StatelessWidget {
-  final bool isLoading;
+class _SignUpButton extends StatelessWidget {
   final Function() onTap;
+  final bool isLoading;
 
-  const _LoginButton({required this.isLoading, required this.onTap});
+  const _SignUpButton({required this.onTap, required this.isLoading});
 
   @override
   Widget build(BuildContext context) {
     return AppElevatedButton(
-      title: 'Login',
+      title: 'Sign Up',
       onTap: onTap,
       isLoading: isLoading,
-    );
-  }
-}
-
-class _CreateAccountButton extends StatelessWidget {
-  final Function() onTap;
-
-  const _CreateAccountButton({required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return AppTextButton(
-      title: 'Sign up',
-      hasBorder: true,
-      textColor: AppColors.primaryBlue1,
-      onTap: onTap,
     );
   }
 }

@@ -4,6 +4,7 @@ import 'package:flutter_base_architecture_plugin/inject/base_injector.dart';
 
 import '../bloc/login/login_bloc.dart';
 import '../bloc/main_app/main_app_bloc.dart';
+import '../bloc/sign_up/sign_up_bloc.dart';
 import '../services/firebase/firebase_service.dart';
 import '../services/user/preference_store.dart';
 import '../services/user/user_service.dart';
@@ -34,5 +35,6 @@ abstract class Injector extends BaseInjector {
 
   @Register.factory(MainAppBloc)
   @Register.factory(LoginBloc)
+  @Register.factory(SignUpBloc)
   void _registerBloc();
 }
