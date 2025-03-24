@@ -33,7 +33,7 @@ extension LoginTextFieldEnumExtention on LoginTextFieldEnum {
   String get title {
     switch (this) {
       case LoginTextFieldEnum.username:
-        return 'Username';
+        return 'Email';
       case LoginTextFieldEnum.password:
         return 'Password';
     }

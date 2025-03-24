@@ -1,31 +1,26 @@
-import 'package:firebase_task/services/user/user_service.dart';
-import 'package:flutter/widgets.dart';
+import 'package:firebase_task/services/firebase/firebase_service.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_base_architecture_plugin/imports/core_imports.dart';
 
 import '../../core/enum.dart';
 import '../../core/routes.dart';
-import '../../services/firebase/firebase_service.dart';
-import 'login_contract.dart';
+import 'sign_up_contract.dart';
 
-class LoginBloc extends BaseBloc<LoginEvent, LoginData> {
-  LoginBloc(this._firebaseService, this._userService) : super(initState) {
-    on<InitLoginEvent>(_initLoginEvent);
-    on<CreteAccountTapEvent>(_creteAccountTapEvent);
-    on<LoginButtonTapEvent>(_loginButtonTapEvent);
-    on<UpdateLoginState>((event, emit) => emit(event.state));
+class SignUpBloc extends BaseBloc<SignUpEvent, SignUpData> {
+  SignUpBloc(this._firebaseService) : super(initState) {
+    on<InitSignUpEvent>(_initSignUpEvent);
+    on<SignUpTapEvent>(_signUpTapEvent);
+    on<UpdateSignUpState>((event, emit) => emit(event.state));
   }
 
   final FirebaseService _firebaseService;
-  final UserService _userService;
 
-  static LoginData get initState => (LoginDataBuilder()
+  static SignUpData get initState => (SignUpDataBuilder()
         ..state = ScreenState.content
         ..passwordController = TextEditingController()
         ..usernameController = TextEditingController()
         ..errorMessage = '')
       .build();
-
-  void _initLoginEvent(_, __) {}
 
   TextEditingController? getTextController(
       {required LoginTextFieldEnum loginTextFieldEnum}) {
@@ -37,21 +32,24 @@ class LoginBloc extends BaseBloc<LoginEvent, LoginData> {
     }
   }
 
-  void _updateLoginButtonState(bool status) => add((UpdateLoginState(
-      state.rebuild((u) => u.isLoginButtonLoading = status))));
+  void _initSignUpEvent(_, __) {}
 
-  void _loginButtonTapEvent(_, __) async {
+  void _signUpTapEvent(_, __) async {
     if (_isValidData()) {
       _updateLoginButtonState(true);
-      if (await _haveAccount()) {
-        _userService.setUserLoginStatus(isLoggedIn: true);
-        dispatchViewEvent(NavigateScreen(AppRoutes.homeScreen));
+      final user = await _firebaseService.signUp(
+          state.usernameController.text, state.usernameController.text);
+      if (user != null) {
+        dispatchViewEvent(NavigateScreen(AppRoutes.loginScreen));
       } else {
-        _dispatchMessage('Invalid Credentials');
+        _dispatchMessage('Something went Wrong!');
       }
       _updateLoginButtonState(false);
     }
   }
+
+  void _updateLoginButtonState(bool status) => add((UpdateSignUpState(
+      state.rebuild((u) => u.isLoginButtonLoading = status))));
 
   bool _isValidData() {
     if (state.usernameController.text.isEmpty) {
@@ -73,15 +71,6 @@ class LoginBloc extends BaseBloc<LoginEvent, LoginData> {
     );
     return emailRegex.hasMatch(email);
   }
-
-  Future<bool> _haveAccount() async {
-    final user = await _firebaseService.login(
-        state.usernameController.text, state.usernameController.text);
-    return user != null ? true : false;
-  }
-
-  void _creteAccountTapEvent(_, __) =>
-      dispatchViewEvent(NavigateScreen(AppRoutes.signUpScreen));
 
   void _dispatchMessage(String message) => dispatchViewEvent(
       DisplayMessage(message: message, type: DisplayMessageType.toast));
