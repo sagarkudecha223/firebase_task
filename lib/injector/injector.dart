@@ -2,6 +2,7 @@ import 'package:flutter_base_architecture_plugin/imports/core_imports.dart';
 import 'package:flutter_base_architecture_plugin/imports/dart_package_imports.dart';
 import 'package:flutter_base_architecture_plugin/inject/base_injector.dart';
 
+import '../bloc/home/home_bloc.dart';
 import '../bloc/login/login_bloc.dart';
 import '../bloc/main_app/main_app_bloc.dart';
 import '../bloc/sign_up/sign_up_bloc.dart';
@@ -36,5 +37,6 @@ abstract class Injector extends BaseInjector {
   @Register.factory(MainAppBloc)
   @Register.factory(LoginBloc)
   @Register.factory(SignUpBloc)
+  @Register.factory(HomeBloc)
   void _registerBloc();
 }

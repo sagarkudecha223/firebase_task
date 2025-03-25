@@ -40,4 +40,25 @@ class FirebaseService {
   Future<void> logout() async => await _auth.signOut();
 
   User? getCurrentUser() => _auth.currentUser;
+
+  Future<void> addPost(String message) async {
+    try {
+      User? user = _auth.currentUser;
+      if (user == null) throw Exception("User not authenticated");
+
+      await _firestore.collection("posts").add({
+        "message": message,
+        "email": user.email,
+        "timestamp": FieldValue.serverTimestamp(),
+      });
+    } catch (e) {
+      throw Exception("Failed to add post: $e");
+    }
+  }
+
+  Stream<List<Map<String, dynamic>>> fetchPosts() => _firestore
+      .collection("posts")
+      .orderBy("timestamp", descending: true)
+      .snapshots()
+      .map((snapshot) => snapshot.docs.map((doc) => doc.data()).toList());
 }
