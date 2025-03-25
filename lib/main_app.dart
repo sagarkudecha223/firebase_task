@@ -1,3 +1,4 @@
+import 'package:firebase_task/ui/home/home_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_base_architecture_plugin/imports/core_imports.dart';
 import 'package:flutter_base_architecture_plugin/imports/dart_package_imports.dart';
@@ -5,7 +6,6 @@ import 'package:flutter_base_architecture_plugin/imports/extension_imports.dart'
 
 import 'bloc/main_app/main_app_bloc.dart';
 import 'bloc/main_app/main_app_contract.dart';
-
 import 'core/colors.dart';
 import 'core/constants.dart';
 import 'core/routes.dart';
@@ -142,7 +142,9 @@ class _MainContent extends StatelessWidget {
       case ScreenState.loading:
         return const AppLoader();
       case ScreenState.content:
-        return const LoginScreen();
+        return bloc.state.isLoggedIn ?? false
+            ? const HomeScreen()
+            : const LoginScreen();
       default:
         return const Center(child: CircularProgressIndicator());
     }

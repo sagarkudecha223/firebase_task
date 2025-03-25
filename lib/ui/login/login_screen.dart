@@ -1,5 +1,6 @@
 import 'package:firebase_task/core/app_extension.dart';
 import 'package:firebase_task/ui/common/app_loader.dart';
+import 'package:firebase_task/ui/home/home_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_base_architecture_plugin/imports/core_imports.dart';
 import 'package:flutter_base_architecture_plugin/imports/dart_package_imports.dart';
@@ -56,7 +57,7 @@ class _LoginScreenState extends BaseState<LoginBloc, LoginScreen> {
       case AppRoutes.homeScreen:
         navigatorKey.currentContext?.pushAndRemoveUntil(
           settings: RouteSettings(name: screen.target),
-          builder: (_) => const LoginScreen(),
+          builder: (_) => const HomeScreen(),
         );
         break;
       case AppRoutes.signUpScreen:
